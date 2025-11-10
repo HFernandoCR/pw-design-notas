@@ -1,179 +1,141 @@
-// Espera a que todo el HTML esté cargado
+// Versión mínima y clara para principiantes
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // Selectores del DOM
+    // Elementos principales
     const btnAgregar = document.querySelector('.btn-agregar');
     const opcionesColor = document.querySelector('.opciones-color');
     const grillaNotas = document.getElementById('grillaNotas');
     const campoBusqueda = document.querySelector('.barra-busqueda input');
 
-    // Carga las notas desde localStorage
+    // Cargar notas guardadas o empezar con array vacío
     let notas = JSON.parse(localStorage.getItem('docketNotas')) || [];
 
-    // Función para guardar en localStorage
-    const guardarNotas = () => {
-        localStorage.setItem('docketNotas', JSON.stringify(notas));
-    };
+    // Guarda en localStorage
+    const guardarNotas = () => localStorage.setItem('docketNotas', JSON.stringify(notas));
 
-    // Función para formatear la fecha
-    const formatearFecha = (date) => {
-        const opciones = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(date).toLocaleDateString('es-ES', opciones); 
-    };
+    // Formatea fecha para mostrar
+    const formatearFecha = (iso) => new Date(iso).toLocaleString('es-ES', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-    // Función para crear cada tarjeta de nota
-    const crearTarjetaNota = (nota) => {
-        const tarjetaNota = document.createElement('div');
-        tarjetaNota.classList.add('tarjeta-nota');
-        tarjetaNota.style.backgroundColor = nota.color;
-        tarjetaNota.dataset.id = nota.id;
+    // Crea y añade una tarjeta simple al DOM
+    function crearTarjetaNota(nota) {
+        const tarjeta = document.createElement('div');
+        tarjeta.className = 'tarjeta-nota';
+        tarjeta.style.backgroundColor = nota.color;
+        tarjeta.dataset.id = nota.id;
 
-        // HTML interno de la tarjeta
-        // - La estrella siempre se muestra; su color depende de la clase 'favorito'
-        // - El menú conserva los textos pero NO muestra el icono de la estrella dentro del botón
-        tarjetaNota.innerHTML = `
-            <i class="fas fa-star ${nota.favorito ? 'favorito' : 'no-favorito'}"></i>
+        // Estructura simple: estrella, contenido, fecha y acciones
+        tarjeta.innerHTML = `
+            <i class="fas fa-star ${nota.favorito ? 'favorito' : ''}"></i>
             <div class="contenido-nota">${nota.contenido}</div>
             <div class="fecha-nota">${formatearFecha(nota.ultimaModificacion)}</div>
-            
             <div class="acciones-nota">
                 <i class="fas fa-pencil-alt"></i>
-                
                 <div class="menu-acciones oculto">
-                    <button class="editar-nota"><i class="fas fa-edit"></i> Editar</button>
+                    <button class="editar-nota">Editar</button>
                     <button class="marcar-favorito">${nota.favorito ? 'Quitar favorito' : 'Favorito'}</button>
-                    <button class="eliminar-nota"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                    <button class="eliminar-nota">Eliminar</button>
                 </div>
             </div>
         `;
 
-        // --- Añadir Eventos a la tarjeta ---
+        // Referencias dentro de la tarjeta
+        const contenidoDiv = tarjeta.querySelector('.contenido-nota');
+        const btnAcciones = tarjeta.querySelector('.acciones-nota');
+        const menu = tarjeta.querySelector('.menu-acciones');
 
-        // Seleccionamos los elementos de la tarjeta
-        const contenidoNota = tarjetaNota.querySelector('.contenido-nota');
-        const btnAcciones = tarjetaNota.querySelector('.acciones-nota');
-        const menuAcciones = tarjetaNota.querySelector('.menu-acciones');
-
-        // --- CAMBIO IMPORTANTE ---
-        // Se eliminó el 'listener' de 'focus' que estaba aquí.
-        // Ya no se puede editar haciendo clic en el texto.
-        // --- FIN DEL CAMBIO ---
-
-        // 1. Evento para el botón de acciones (lápiz)
+        // Mostrar/ocultar menú al hacer clic en el lápiz
         btnAcciones.addEventListener('click', (e) => {
             e.stopPropagation();
-            // Cierra otros menús
-            document.querySelectorAll('.menu-acciones').forEach(menu => {
-                if (menu !== menuAcciones) menu.classList.add('oculto');
-            });
-            menuAcciones.classList.toggle('oculto');
+            // Cerrar otros menús
+            document.querySelectorAll('.menu-acciones').forEach(m => { if (m !== menu) m.classList.add('oculto'); });
+            menu.classList.toggle('oculto');
         });
 
-        // 2. Eventos para los botones del menú
-        
-        // --- CAMBIO: Lógica de edición movida aquí ---
-        menuAcciones.querySelector('.editar-nota').addEventListener('click', (e) => {
-            // Evita que el click burbujee y active otros handlers globales
-            e.stopPropagation();
+            // Editar: usar edición inline con contentEditable (más visual para principiantes)
+            menu.querySelector('.editar-nota').addEventListener('click', (e) => {
+                e.stopPropagation();
+                // Oculta el menú antes de editar
+                menu.classList.add('oculto');
 
-            // Cierra todos los menús de acciones para evitar que queden visibles
-            document.querySelectorAll('.menu-acciones').forEach(menu => menu.classList.add('oculto'));
+                // Hacemos editable el div de contenido y le damos foco
+                contenidoDiv.contentEditable = 'true';
+                contenidoDiv.focus();
 
-            // Crea el textarea manualmente
-            const textarea = document.createElement('textarea');
-            textarea.classList.add('textarea-nota');
-            textarea.value = contenidoNota.textContent; // Usa el texto actual
+                // Mover el cursor al final del contenido
+                const range = document.createRange();
+                range.selectNodeContents(contenidoDiv);
+                range.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
 
-            // Reemplaza el <div.contenido-nota> por el <textarea>
-            contenidoNota.replaceWith(textarea);
-            textarea.focus(); // Pone el cursor en el textarea
+                // Guardar cuando se pierde el foco
+                const onBlur = () => {
+                    contenidoDiv.contentEditable = 'false';
+                    // Actualiza la nota y guarda
+                    nota.contenido = contenidoDiv.textContent.trim() || ' '; // evita vacío absoluto
+                    nota.ultimaModificacion = new Date().toISOString();
+                    guardarNotas();
+                    // Limpia el listener para evitar duplicados
+                    contenidoDiv.removeEventListener('blur', onBlur);
+                    renderizar();
+                };
 
-            // Añade el evento para guardar cuando se pierde el foco
-            textarea.addEventListener('blur', () => {
-                nota.contenido = textarea.value;
-                nota.ultimaModificacion = new Date().toISOString();
-                guardarNotas();
-                mostrarNotas(); // Vuelve a dibujar todo
+                contenidoDiv.addEventListener('blur', onBlur);
             });
-        });
-        // --- FIN DEL CAMBIO ---
 
-        menuAcciones.querySelector('.marcar-favorito').addEventListener('click', (e) => {
+        // Marcar/quitar favorito
+        menu.querySelector('.marcar-favorito').addEventListener('click', (e) => {
             e.stopPropagation();
-            nota.favorito = !nota.favorito; // Invierte el estado
+            nota.favorito = !nota.favorito;
             guardarNotas();
-            // Cierra menús y vuelve a renderizar
-            document.querySelectorAll('.menu-acciones').forEach(menu => menu.classList.add('oculto'));
-            mostrarNotas();
+            menu.classList.add('oculto');
+            renderizar();
         });
 
-        menuAcciones.querySelector('.eliminar-nota').addEventListener('click', (e) => {
+        // Eliminar
+        menu.querySelector('.eliminar-nota').addEventListener('click', (e) => {
             e.stopPropagation();
-            if (confirm('¿Estás seguro de que quieres eliminar esta nota?')) {
+            if (confirm('¿Eliminar esta nota?')) {
                 notas = notas.filter(n => n.id !== nota.id);
                 guardarNotas();
-                // Cierra menús y vuelve a renderizar
-                document.querySelectorAll('.menu-acciones').forEach(menu => menu.classList.add('oculto'));
-                mostrarNotas();
-            }
-        });
-
-        grillaNotas.appendChild(tarjetaNota);
-    };
-
-    // Función para dibujar todas las notas
-    const mostrarNotas = (textoFiltro = '') => {
-        grillaNotas.innerHTML = '';
-        const notasFiltradas = notas.filter(nota =>
-            nota.contenido.toLowerCase().includes(textoFiltro.toLowerCase())
-        );
-        notasFiltradas.forEach(crearTarjetaNota);
-    };
-
-    // --- Eventos Globales ---
-
-    // Mostrar/ocultar opciones de color
-    btnAgregar.addEventListener('click', () => {
-        opcionesColor.classList.toggle('oculto');
-    });
-
-    // Crear nueva nota al elegir color
-    opcionesColor.addEventListener('click', (e) => {
-        if (e.target.classList.contains('circulo-color')) {
-            const color = e.target.dataset.color;
-            const nuevaNota = {
-                id: Date.now().toString(),
-                contenido: "Esta es una nueva nota.",
-                color: color,
-                ultimaModificacion: new Date().toISOString(),
-                favorito: false // <-- Tu requisito: Nace como 'false'
-            };
-            notas.push(nuevaNota);
-            guardarNotas();
-            mostrarNotas();
-            opcionesColor.classList.add('oculto');
-        }
-    });
-
-    // Cerrar menús al hacer clic fuera
-    document.addEventListener('click', (e) => {
-        // Cierra menús de acciones
-        document.querySelectorAll('.menu-acciones').forEach(menu => {
-            if (!menu.closest('.tarjeta-nota').contains(e.target)) {
                 menu.classList.add('oculto');
+                renderizar();
             }
         });
-        // Cierra opciones de color
-        if (!btnAgregar.contains(e.target) && !opcionesColor.contains(e.target)) {
-            opcionesColor.classList.add('oculto');
-        }
+
+        grillaNotas.appendChild(tarjeta);
+    }
+
+    // Renderiza todas las notas (con filtro opcional)
+    function renderizar(filtro = '') {
+        grillaNotas.innerHTML = '';
+        const lower = filtro.toLowerCase();
+        notas.filter(n => n.contenido.toLowerCase().includes(lower)).forEach(crearTarjetaNota);
+    }
+
+    // Botón + muestra/oculta selector de color
+    btnAgregar.addEventListener('click', () => opcionesColor.classList.toggle('oculto'));
+
+    // Crear nota al hacer clic en un color (muy simple)
+    opcionesColor.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('circulo-color')) return;
+        const color = e.target.dataset.color || '#FFD68A';
+        const nueva = { id: Date.now().toString(), contenido: 'Nueva nota', color, ultimaModificacion: new Date().toISOString(), favorito: false };
+        notas.push(nueva);
+        guardarNotas();
+        opcionesColor.classList.add('oculto');
+        renderizar();
     });
 
-    // Evento de la barra de búsqueda
-    campoBusqueda.addEventListener('input', (e) => {
-        mostrarNotas(e.target.value);
+    // Cerrar menús/selector si se hace clic fuera
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.menu-acciones').forEach(m => m.classList.add('oculto'));
+        if (!btnAgregar.contains(e.target) && !opcionesColor.contains(e.target)) opcionesColor.classList.add('oculto');
     });
+
+    // Búsqueda simple
+    campoBusqueda.addEventListener('input', (e) => renderizar(e.target.value));
 
     // Carga inicial
-    mostrarNotas();
+    renderizar();
 });
