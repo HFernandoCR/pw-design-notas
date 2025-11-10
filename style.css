@@ -1,0 +1,226 @@
+/* --- Variables Globales y Reseteo --- */
+:root {
+    --fondo-barra: #FFFFFF;
+    --fondo-principal: #F8F9FA;
+    --texto-color: #000000;
+    --texto-claro: #5F6368;
+    --borde-color: #E0E0E0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--fondo-principal);
+    color: var(--texto-color);
+}
+
+/* --- Estructura Principal --- */
+.contenedor {
+    display: flex;
+}
+
+.barra-lateral {
+    width: 80px;
+    height: 100vh;
+    background-color: var(--fondo-barra);
+    border-right: 1px solid var(--borde-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.contenido-principal {
+    margin-left: 80px; /* Espacio para la barra lateral */
+    flex-grow: 1;
+    padding: 20px 40px;
+    width: calc(100% - 80px);
+}
+
+/* --- Barra Lateral --- */
+.logo {
+    font-weight: bold;
+    font-size: 20px;
+    margin-bottom: 40px;
+}
+
+.btn-agregar {
+    width: 48px;
+    height: 48px;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.opciones-color {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.circulo-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.circulo-color.naranja { background-color: #FFD68A; }
+.circulo-color.coral { background-color: #FF9B8C; }
+.circulo-color.morado { background-color: #DDCBFF; }
+.circulo-color.cian { background-color: #B5EAFB; }
+.circulo-color.verde { background-color: #D8E8A0; }
+
+/* --- Contenido Principal --- */
+.encabezado {
+    margin-bottom: 30px;
+}
+
+.barra-busqueda {
+    display: flex;
+    align-items: center;
+    background-color: #FFFFFF;
+    border: 1px solid var(--borde-color);
+    border-radius: 8px;
+    padding: 8px 12px;
+    max-width: 400px;
+}
+
+.barra-busqueda i {
+    color: var(--texto-claro);
+    margin-right: 8px;
+}
+
+.barra-busqueda input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    background-color: transparent;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+/* --- Cuadrícula de Notas --- */
+.grilla-notas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+}
+
+.tarjeta-nota {
+    height: 250px;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.contenido-nota {
+    font-size: 16px;
+    line-height: 1.5;
+    overflow: hidden; 
+    flex-grow: 1;
+}
+
+/* Estilo del textarea cuando se edita */
+.textarea-nota {
+    width: 100%;
+    height: 100%;
+    border: none;
+    resize: none;
+    background-color: transparent;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1.5;
+    outline: none;
+    flex-grow: 1;
+}
+
+.fecha-nota {
+    font-size: 12px;
+    color: var(--texto-claro);
+    margin-top: 10px;
+}
+
+/* --- Acciones de la Nota --- */
+.tarjeta-nota .fa-star {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    /* Por defecto, estrella tenue cuando NO es favorita */
+    color: rgba(0,0,0,0.18);
+    font-size: 18px;
+}
+
+/* Cuando la nota está marcada como favorita, la estrella aparece amarilla */
+.tarjeta-nota .fa-star.favorito {
+    color: #FFC107;
+}
+
+.acciones-nota {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    cursor: pointer;
+    color: var(--texto-claro);
+    padding: 5px;
+}
+
+.menu-acciones {
+    position: absolute;
+    bottom: 30px;
+    right: 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.menu-acciones button {
+    background-color: transparent;
+    border: none;
+    padding: 10px 15px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menu-acciones button:hover {
+    background-color: #f0f0f0;
+}
+
+.menu-acciones button .fa-trash-alt {
+    color: #E53935; /* Rojo para eliminar */
+}
+
+/* Clase de utilidad (usada por JS) */
+.oculto {
+    display: none;
+}
