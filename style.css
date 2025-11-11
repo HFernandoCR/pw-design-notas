@@ -1,4 +1,4 @@
-/* --- Variables Globales y Reseteo --- */
+
 :root {
     --fondo-barra: #FFFFFF;
     --fondo-principal: #F8F9FA;
@@ -220,7 +220,6 @@ h1 {
     color: #E53935; /* Rojo para eliminar */
 }
 
-/* Clase de utilidad (usada por JS) */
 .oculto {
     display: none;
 }
